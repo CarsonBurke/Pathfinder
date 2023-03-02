@@ -1,3 +1,2 @@
-# Pathfinder
-
-A project for learning how to code a pathfinding algorithm
+# WebGine
+A website game engine for creating my machine learning game projects
