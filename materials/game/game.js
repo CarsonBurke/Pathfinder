@@ -1,8 +1,15 @@
 class Game {
     
     running = false
-    graph = new Uint32Array()
+    origins
+    goals
+    graph = new Uint8Array()
     visited = new Uint8Array()
+    pathGraph = new Uint32Array()
+    /**
+     * The coord from which the best score was found from
+     */
+    pathFrom = new Uint8Array()
 
     constructor() {
 
@@ -43,6 +50,8 @@ class Game {
                     this.visited[packedAdjcoord] = 1
                     
                     nextFloodGen.add(packedAdjcoord)
+                    this.pathFrom[packedAdjcoord] = packedCoord
+                    this.pathGraph[packedAdjcoord] = this.findCostOfCoord(adjCoord)
                 }
             }
             
@@ -61,16 +70,12 @@ class Game {
 
         this.visualize()
     }
-    findCostOfCoord() {
+    findCostOfCoord(coord) {
 
-        for (const packedCoord of this.goals) {
-            
-            if (!this.floodGenGraph.has(packedCoord)) continue
-
-            this.running = false
-        }
-
-        
+        const goalCost = findLowestCost(coord, this.goals)
+        const originCost = findLowestCost(coord, this.origins)
+     
+        return goalCost + originCost
     }
     reset() {
 
@@ -83,9 +88,14 @@ Game.prototype.init = function() {
     this.running = true
     this.graph = new Uint8Array(env.graphSize * env.graphSize)
     this.visited = new Uint8Array(env.graphSize * env.graphSize)
-    this.floodGenGraph = new Set([packXY(71, 81)])
+    this.pathGraph = new Uint32Array(env.graphSize * env.graphSize)
+    this.pathFrom = new Uint8Array(env.graphSize * env.graphSize)
+
+    this.origins = [packXY(25, 25)]
+    this.floodGenGraph = new Set(this.origins)
     for (const packedCoord of this.floodGenGraph) this.visited[packedCoord] = 1
-    this.goals = new Set([packXY(35, 10), packXY(5, 40)])
+
+    this.goals = new Set([packXY(2, 2), packXY(1, 1)])
 
     for (let x = 0; x < env.graphSize; x++) {
         for (let y = 0; y < env.graphSize; y++) {
@@ -172,6 +182,29 @@ Game.prototype.visualize = function() {
             env.cm.beginPath();
             env.cm.fillRect(x * env.coordSize, y * env.coordSize, env.coordSize, env.coordSize);
             env.cm.stroke();
+        }
+    }
+
+    for (let x = 0; x < env.graphSize; x++) {
+        for (let y = 0; y < env.graphSize; y++) {
+
+            const packedCoord = packXY(x, y)
+
+            const packedCoordFrom = this.pathFrom[packedCoord]
+            if (packedCoordFrom) {
+                const coordFrom = unpackCoord(packedCoordFrom)
+                console.log(x, y, coordFrom)
+                env.cm.strokeStyle = '#ff0000';
+                env.cm.beginPath();
+                env.cm.moveTo(x * env.coordSize, y * env.coordSize);
+                env.cm.lineTo(coordFrom.x * env.coordSize, coordFrom.y * env.coordSize);
+                env.cm.stroke();
+            }
+
+            env.cm.fillStyle = 'white'
+            env.cm.font = "15px Arial";
+            env.cm.textAlign = "center";
+            env.cm.fillText(this.pathGraph[packedCoord].toString(), x * env.coordSize + env.coordSize * 0.5, y * env.coordSize + env.coordSize * 0.75);
         }
     }
 

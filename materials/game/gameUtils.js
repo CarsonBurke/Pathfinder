@@ -52,9 +52,25 @@ function isXYInGraph(x, y) {
  function getRange(x1, x2, y1, y2) {
     // Find the range using Chebyshev's formula
 
-    return Math.sqrt( Math.pow((x1-x2), 2) + Math.pow((y1-y2), 2) )
+    return Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1))
 }
 
 function getRangeOfCoords(coord1, coord2) {
     return getRange(coord1.x, coord2.x, coord1.y, coord2.y)
+}
+
+function findLowestCost(origin, iter) {
+
+    let lowestCost = Infinity
+
+    for (const packedCoord of iter) {
+        
+        const goal = unpackCoord(packedCoord)
+        const cost = getRangeOfCoords(origin, goal)
+        if (cost >= lowestCost) continue
+
+        lowestCost = cost
+    }
+
+    return lowestCost
 }
