@@ -192,11 +192,11 @@ Game.prototype.init = function() {
         this.graph[packCoord(coord)] = 255
     }
 
-    coords = findCoordsInsideRect(12, 21, 18, 29)
+    coords = findCoordsInsideRect(15, 21, 19, 29)
 
     for (const coord of coords) {
 
-        this.graph[packCoord(coord)] = 10
+        this.graph[packCoord(coord)] = 16
     }
 }
 
