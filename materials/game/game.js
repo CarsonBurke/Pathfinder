@@ -12,6 +12,10 @@ class Game {
      */
     pathFrom = []
 
+    //
+
+    lowestNextGenCost = Infinity
+
     constructor() {
 
         this.ID = env.newID()
@@ -27,10 +31,19 @@ class Game {
         while (this.floodGenGraph.size) {
 
             let nextFloodGen = new Set()
+            const lowestGenCost = this.lowestNextGenCost
+            this.lowestNextGenCost = Infinity
 
             for (const packedCoord of this.floodGenGraph) {
 
                 const coord = unpackCoord(packedCoord)
+                const coordCost = this.findCostOfCoord(coord) + this.graph[packedCoord]
+
+                if (coordCost > lowestGenCost) {
+
+                    nextFloodGen.add(packedCoord)
+                    continue
+                }
 
                 for (const offset of adjacentOffsets) {
 
@@ -45,14 +58,19 @@ class Game {
 
                     const packedAdjcoord = packCoord(adjCoord)
 
-                    if (this.graph[packedAdjcoord] === 255) continue
+                    const graphWeight = this.graph[packedAdjcoord]
+                    if (graphWeight === 255) continue
                     
                     if (this.visited[packedAdjcoord] === 1) continue
                     this.visited[packedAdjcoord] = 1
                     
                     nextFloodGen.add(packedAdjcoord)
                     this.pathFrom[packedAdjcoord] = coord
-                    this.pathGraph[packedAdjcoord] = this.findCostOfCoord(adjCoord)
+
+                    const adjCoordCost = this.findCostOfCoord(adjCoord) + graphWeight
+                    this.pathGraph[packedAdjcoord] = adjCoordCost
+
+                    if (adjCoordCost < this.lowestNextGenCost) this.lowestNextGenCost = adjCoordCost
                 }
             }
             
@@ -73,7 +91,7 @@ class Game {
                 this.path.push(nextCoord)
                 nextCoord = this.pathFrom[packCoord(nextCoord)]
             }
-
+            env.pathLength = this.path.length
             this.running = false
         }
 
@@ -97,6 +115,8 @@ class Game {
 Game.prototype.init = function() {
 
     this.running = true
+
+    this.lowestNextGenCost = Infinity
     this.graph = new Uint8Array(env.graphSize * env.graphSize)
     this.visited = new Uint8Array(env.graphSize * env.graphSize)
     this.pathGraph = new Uint32Array(env.graphSize * env.graphSize)
@@ -172,11 +192,11 @@ Game.prototype.init = function() {
         this.graph[packCoord(coord)] = 255
     }
 
-    coords = findCoordsInsideRect(61, 0, 64, 10)
+    coords = findCoordsInsideRect(12, 21, 18, 29)
 
     for (const coord of coords) {
 
-        this.graph[packCoord(coord)] = 50
+        this.graph[packCoord(coord)] = 10
     }
 }
 
@@ -213,10 +233,13 @@ Game.prototype.visualize = function() {
                 env.cm.stroke();
             }
 
+            const heuristic = this.pathGraph[packedCoord]
+            if (heuristic === 0) continue
+
             env.cm.fillStyle = 'white'
             env.cm.font = "15px Arial";
             env.cm.textAlign = "center";
-            env.cm.fillText(this.pathGraph[packedCoord].toString(), x * env.coordSize + env.coordSize * 0.5, y * env.coordSize + env.coordSize * 0.75);
+            env.cm.fillText(heuristic.toString(), x * env.coordSize + env.coordSize * 0.5, y * env.coordSize + env.coordSize * 0.75);
         }
     }
 

@@ -13,11 +13,13 @@ class Env {
         this.tick = 0
         this.roundTick = 0
         this.speed = 1
+        this.pathLength = 'unknown'
 
         this.stats = [
             'tick',
             'roundTick',
-            'speed'
+            'speed',
+            'pathLength',
         ]
     }
 }
