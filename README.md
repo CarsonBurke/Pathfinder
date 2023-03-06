@@ -1,2 +1,2 @@
-# WebGine
-A website game engine for creating my machine learning game projects
+# PathFinder
+An A* implementation built using WebGine, my website game engine
