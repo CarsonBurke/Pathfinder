@@ -6,10 +6,11 @@ class Game {
     graph = new Uint8Array()
     visited = new Uint8Array()
     pathGraph = new Uint32Array()
+    path = []
     /**
      * The coord from which the best score was found from
      */
-    pathFrom = new Uint8Array()
+    pathFrom = []
 
     constructor() {
 
@@ -50,7 +51,7 @@ class Game {
                     this.visited[packedAdjcoord] = 1
                     
                     nextFloodGen.add(packedAdjcoord)
-                    this.pathFrom[packedAdjcoord] = packedCoord
+                    this.pathFrom[packedAdjcoord] = coord
                     this.pathGraph[packedAdjcoord] = this.findCostOfCoord(adjCoord)
                 }
             }
@@ -62,6 +63,16 @@ class Game {
         for (const packedCoord of this.goals) {
             
             if (!this.floodGenGraph.has(packedCoord)) continue
+
+            // We have reached a goal, record the path
+
+            this.path.push(unpackCoord(packedCoord))
+            let nextCoord = this.pathFrom[packedCoord]
+            while (nextCoord) {
+
+                this.path.push(nextCoord)
+                nextCoord = this.pathFrom[packCoord(nextCoord)]
+            }
 
             this.running = false
         }
@@ -89,7 +100,8 @@ Game.prototype.init = function() {
     this.graph = new Uint8Array(env.graphSize * env.graphSize)
     this.visited = new Uint8Array(env.graphSize * env.graphSize)
     this.pathGraph = new Uint32Array(env.graphSize * env.graphSize)
-    this.pathFrom = new Uint8Array(env.graphSize * env.graphSize)
+    this.pathFrom = []
+    this.path = []
 
     this.origins = [packXY(25, 25)]
     this.floodGenGraph = new Set(this.origins)
@@ -190,14 +202,14 @@ Game.prototype.visualize = function() {
 
             const packedCoord = packXY(x, y)
 
-            const packedCoordFrom = this.pathFrom[packedCoord]
-            if (packedCoordFrom) {
-                const coordFrom = unpackCoord(packedCoordFrom)
-                console.log(x, y, coordFrom)
+            const coordFrom = this.pathFrom[packedCoord]
+            if (coordFrom) {
+                /* const coordFrom = unpackCoord(packedCoordFrom) */
+                /* console.log(x, y, coordFrom) */
                 env.cm.strokeStyle = '#ff0000';
                 env.cm.beginPath();
-                env.cm.moveTo(x * env.coordSize, y * env.coordSize);
-                env.cm.lineTo(coordFrom.x * env.coordSize, coordFrom.y * env.coordSize);
+                env.cm.moveTo(x * env.coordSize + env.coordSize * 0.5, y * env.coordSize + env.coordSize * 0.5);
+                env.cm.lineTo(coordFrom.x * env.coordSize+ env.coordSize * 0.5, coordFrom.y * env.coordSize + env.coordSize * 0.5);
                 env.cm.stroke();
             }
 
@@ -214,6 +226,15 @@ Game.prototype.visualize = function() {
 
         const coord = unpackCoord(packedCoord)
 
-        env.cm.drawImage(document.getElementById('x'), coord.x * env.coordSize - env.coordSize / 2, coord.y * env.coordSize - env.coordSize / 2, env.coordSize * 2, env.coordSize * 2)
+        env.cm.drawImage(document.getElementById('x'), coord.x * env.coordSize, coord.y * env.coordSize, env.coordSize, env.coordSize)
+    }
+
+    for (const coord of this.path) {
+
+        env.cm.fillStyle = 'green'
+
+        env.cm.beginPath();
+        env.cm.fillRect(coord.x * env.coordSize, coord.y * env.coordSize, env.coordSize, env.coordSize);
+        env.cm.stroke();
     }
 }
