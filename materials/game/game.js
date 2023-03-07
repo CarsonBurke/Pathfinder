@@ -84,13 +84,7 @@ class Game {
 
             // We have reached a goal, record the path
 
-            this.path.push(unpackCoord(packedCoord))
-            let nextCoord = this.pathFrom[packedCoord]
-            while (nextCoord) {
-
-                this.path.push(nextCoord)
-                nextCoord = this.pathFrom[packCoord(nextCoord)]
-            }
+            this.path = this.findPathOfCoord(packCoord(packedCoord))
             env.pathLength = this.path.length
             this.running = false
         }
@@ -102,9 +96,25 @@ class Game {
     findCostOfCoord(coord) {
 
         const goalCost = findLowestCost(coord, this.goals)
-        const originCost = findLowestCost(coord, this.origins)
+        const originCost = this.findPathOfCoord(coord).length
      
         return goalCost + originCost
+    }
+    findPathOfCoord(coord) {
+
+        const path = []
+        path.push(coord)
+
+        const packedCoord = packCoord(coord)
+        let nextCoord = this.pathFrom[packedCoord]
+
+        while (nextCoord) {
+
+            path.push(nextCoord)
+            nextCoord = this.pathFrom[packCoord(nextCoord)]
+        }
+
+        return path
     }
     reset() {
 
@@ -123,11 +133,11 @@ Game.prototype.init = function() {
     this.pathFrom = []
     this.path = []
 
-    this.origins = [packXY(25, 25)]
+    this.origins = [packXY(0, 4)]
     this.floodGenGraph = new Set(this.origins)
     for (const packedCoord of this.floodGenGraph) this.visited[packedCoord] = 1
 
-    this.goals = new Set([packXY(2, 2), packXY(1, 1)])
+    this.goals = new Set([packXY(10, 4)])
 
     for (let x = 0; x < env.graphSize; x++) {
         for (let y = 0; y < env.graphSize; y++) {
@@ -136,67 +146,39 @@ Game.prototype.init = function() {
         }
     }
 
-    let coords = findCoordsInsideRect(15, 10, 30, 20)
+    let coords = findCoordsInsideRect(0, 0, 2, 3)
 
     for (const coord of coords) {
 
         this.graph[packCoord(coord)] = 255
     }
 
-    coords = findCoordsInsideRect(8, 30, 25, 90)
+    coords = findCoordsInsideRect(6, 0, 11, 3)
 
     for (const coord of coords) {
 
         this.graph[packCoord(coord)] = 255
     }
 
-    coords = findCoordsInsideRect(8, 90, 25, 100)
-
-    for (const coord of coords) {
-
-        this.graph[packCoord(coord)] = 20
-    }
-
-    coords = findCoordsInsideRect(50, 60, 80, 80)
+    coords = findCoordsInsideRect(0, 5, 11, 11)
 
     for (const coord of coords) {
 
         this.graph[packCoord(coord)] = 255
     }
 
-    coords = findCoordsInsideRect(26, 60, 50, 80)
-
-    for (const coord of coords) {
-
-        this.graph[packCoord(coord)] = 30
-    }
-
-    coords = findCoordsInsideRect(65, 5, 80, 60)
+    coords = findCoordsInsideRect(4, 1, 4, 3)
 
     for (const coord of coords) {
 
         this.graph[packCoord(coord)] = 255
     }
 
-    coords = findCoordsInsideRect(50, 0, 60, 55)
+    coords = findCoordsInsideRect(4, 4, 4, 4)
 
     for (const coord of coords) {
 
-        this.graph[packCoord(coord)] = 255
-    }
-
-    coords = findCoordsInsideRect(60, 80, 70, 95)
-
-    for (const coord of coords) {
-
-        this.graph[packCoord(coord)] = 255
-    }
-
-    coords = findCoordsInsideRect(15, 21, 19, 29)
-
-    for (const coord of coords) {
-
-        this.graph[packCoord(coord)] = 16
+        this.graph[packCoord(coord)] = 10
     }
 }
 
